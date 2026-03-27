@@ -1,0 +1,125 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(npm test)",
+      "Bash(npm install*)",
+      "Bash(npx vitest *)",
+      "Bash(npx prisma *)",
+      "Bash(npx tsc*)",
+      "Bash(node *)",
+      "Bash(git status*)",
+      "Bash(git log*)",
+      "Bash(git diff*)",
+      "Bash(git branch*)",
+      "Bash(git checkout*)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git stash*)",
+      "Bash(git show*)",
+      "Bash(git blame*)",
+      "Bash(git rev-parse*)",
+      "Bash(git ls-tree*)",
+      "Bash(git worktree*)",
+      "Bash(docker compose *)",
+      "Bash(gh pr *)",
+      "Bash(gh issue *)",
+      "Bash(gh run *)",
+      "Bash(gh api *)"
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(git push --force*)",
+      "Bash(git reset --hard*)",
+      "Bash(npx prisma migrate dev*)",
+      "Bash(docker run *)",
+      "Bash(docker rm *)",
+      "Bash(docker rmi *)"
+    ]
+  },
+  "env": {
+    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "90"
+  },
+  "respectGitignore": true,
+  "worktree": {
+    "symlinkDirectories": ["node_modules"]
+  },
+  "enableAllProjectMcpServers": true,
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "case \"$CLAUDE_FILE_PATH\" in *.ts) cd /Users/bernardocjs/Documents/Pessoal/Exams/shipping && npx prettier --write \"$CLAUDE_FILE_PATH\" 2>/dev/null || true;; esac"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "case \"$CLAUDE_FILE_PATH\" in *.env|*.env.*) echo 'BLOCKED: Do not edit .env files — they may contain secrets. Edit .env.example instead.' && exit 2;; */node_modules/*) echo 'BLOCKED: Do not edit node_modules' && exit 2;; *package-lock.json) echo 'BLOCKED: Do not edit package-lock.json directly — use npm install' && exit 2;; esac"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash(git commit *)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /Users/bernardocjs/Documents/Pessoal/Exams/shipping && echo '[pre-commit gate] running lint + tests...' && npm run lint 2>&1 | tail -5 && npm test 2>&1 | tail -20 || (echo 'BLOCKED: lint or tests failed — fix before committing' && exit 2)"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "branch=$(git -C /Users/bernardocjs/Documents/Pessoal/Exams/shipping branch --show-current 2>/dev/null); changed=$(git -C /Users/bernardocjs/Documents/Pessoal/Exams/shipping diff --name-only 2>/dev/null | head -10); echo \"SHIPPING API — branch: $branch | changed: ${changed:-none}\\nStack: Express 5 + TypeScript strict + Prisma (PostgreSQL) + Pino + Zod\\nArch: Routes→Controllers→UseCases→Providers (clean arch, constructor DI)\\nErrors: AppError→NotFoundError(404)/BadRequestError(400)/ExternalServiceError(503)\\nTests: Vitest + vitest-mock-extended, mockDeep<T>(). Run: npm test\\nDomain: Shipment{PENDING→IN_TRANSIT→DELIVERED/CANCELLED}, OSRM for distance\\nRules: .claude/rules/ | Agents: backend/sre/devops | Skills: /feature /add-endpoint /review /prod-check\""
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "branch=$(git -C /Users/bernardocjs/Documents/Pessoal/Exams/shipping branch --show-current 2>/dev/null || echo 'detached'); changed=$(git -C /Users/bernardocjs/Documents/Pessoal/Exams/shipping diff --name-only 2>/dev/null | wc -l | tr -d ' '); staged=$(git -C /Users/bernardocjs/Documents/Pessoal/Exams/shipping diff --cached --name-only 2>/dev/null | wc -l | tr -d ' '); echo \"[git] branch: $branch | $changed unstaged, $staged staged\""
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "osascript -e 'display notification \"Claude needs your attention\" with title \"Claude Code\"' 2>/dev/null || true"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "changed=$(git -C /Users/bernardocjs/Documents/Pessoal/Exams/shipping diff --name-only 2>/dev/null); if echo \"$changed\" | grep -qE '^src/'; then echo \"[VERIFY] src/ files changed — recommended: npm run lint && npm test\"; fi; if echo \"$changed\" | grep -qE '^prisma/'; then echo \"[VERIFY] prisma/ changed — check migration status: npx prisma migrate status\"; fi"
+          }
+        ]
+      }
+    ]
+  }
+}

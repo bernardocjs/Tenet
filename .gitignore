@@ -5,4 +5,5 @@ coverage
 .env
 prisma/dev.db
 prisma/dev.db-journal
-CLAUDE.md
+# CLAUDE.md
+# .claude
