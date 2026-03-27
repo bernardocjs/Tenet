@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ShipmentStatus } from "@/interfaces/shipment";
+import { ShipmentStatus } from "@prisma/client";
 import { cityCoordinates } from "@/utils/map-helper";
 
 export const CreateShipmentSchema = z.object({

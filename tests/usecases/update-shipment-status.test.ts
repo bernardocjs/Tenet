@@ -1,9 +1,8 @@
 import { describe, it, expect, beforeEach } from "vitest";
+import { mockDeep, type DeepMockProxy } from "vitest-mock-extended";
+import { PrismaClient, ShipmentStatus, type Shipment } from "@prisma/client";
 import { UpdateShipmentStatusUseCase } from "@/usecases/update-shipment-status";
-import { InMemoryShipmentDatabase } from "@/database/database";
-import { Shipment, ShipmentStatus } from "@/interfaces/shipment";
 import { NotFoundError, BadRequestError } from "@/errors";
-import { ShipmentDatabaseRepository } from "@/database/interface";
 
 function makeShipment(overrides: Partial<Shipment> = {}): Shipment {
   return {
@@ -14,23 +13,25 @@ function makeShipment(overrides: Partial<Shipment> = {}): Shipment {
     distanceKm: 400,
     estimatedDeliveryHours: 5,
     createdAt: new Date(),
+    updatedAt: new Date(),
     ...overrides,
   };
 }
 
 describe("UpdateShipmentStatusUseCase", () => {
-  let shipmentDatabase: ShipmentDatabaseRepository;
+  let prisma: DeepMockProxy<PrismaClient>;
   let useCase: UpdateShipmentStatusUseCase;
 
   beforeEach(() => {
-    shipmentDatabase = new InMemoryShipmentDatabase();
-    useCase = new UpdateShipmentStatusUseCase(shipmentDatabase);
+    prisma = mockDeep<PrismaClient>();
+    useCase = new UpdateShipmentStatusUseCase(prisma);
   });
 
   it("should update PENDING to IN_TRANSIT", async () => {
-    await shipmentDatabase.save(
-      makeShipment({ status: ShipmentStatus.PENDING }),
-    );
+    const existing = makeShipment({ status: ShipmentStatus.PENDING });
+    const updated = makeShipment({ status: ShipmentStatus.IN_TRANSIT });
+    prisma.shipment.findUnique.mockResolvedValue(existing);
+    prisma.shipment.update.mockResolvedValue(updated);
 
     const result = await useCase.execute("abc-123", ShipmentStatus.IN_TRANSIT);
 
@@ -38,9 +39,10 @@ describe("UpdateShipmentStatusUseCase", () => {
   });
 
   it("should update PENDING to CANCELLED", async () => {
-    await shipmentDatabase.save(
-      makeShipment({ status: ShipmentStatus.PENDING }),
-    );
+    const existing = makeShipment({ status: ShipmentStatus.PENDING });
+    const updated = makeShipment({ status: ShipmentStatus.CANCELLED });
+    prisma.shipment.findUnique.mockResolvedValue(existing);
+    prisma.shipment.update.mockResolvedValue(updated);
 
     const result = await useCase.execute("abc-123", ShipmentStatus.CANCELLED);
 
@@ -48,9 +50,10 @@ describe("UpdateShipmentStatusUseCase", () => {
   });
 
   it("should update IN_TRANSIT to DELIVERED", async () => {
-    await shipmentDatabase.save(
-      makeShipment({ status: ShipmentStatus.IN_TRANSIT }),
-    );
+    const existing = makeShipment({ status: ShipmentStatus.IN_TRANSIT });
+    const updated = makeShipment({ status: ShipmentStatus.DELIVERED });
+    prisma.shipment.findUnique.mockResolvedValue(existing);
+    prisma.shipment.update.mockResolvedValue(updated);
 
     const result = await useCase.execute("abc-123", ShipmentStatus.DELIVERED);
 
@@ -58,13 +61,15 @@ describe("UpdateShipmentStatusUseCase", () => {
   });
 
   it("should throw NotFoundError when shipment does not exist", async () => {
+    prisma.shipment.findUnique.mockResolvedValue(null);
+
     await expect(
       useCase.execute("nonexistent", ShipmentStatus.IN_TRANSIT),
     ).rejects.toThrow(NotFoundError);
   });
 
   it("should throw BadRequestError for invalid transition PENDING -> DELIVERED", async () => {
-    await shipmentDatabase.save(
+    prisma.shipment.findUnique.mockResolvedValue(
       makeShipment({ status: ShipmentStatus.PENDING }),
     );
 
@@ -74,7 +79,7 @@ describe("UpdateShipmentStatusUseCase", () => {
   });
 
   it("should throw BadRequestError for invalid transition DELIVERED -> anything", async () => {
-    await shipmentDatabase.save(
+    prisma.shipment.findUnique.mockResolvedValue(
       makeShipment({ status: ShipmentStatus.DELIVERED }),
     );
 
@@ -84,7 +89,7 @@ describe("UpdateShipmentStatusUseCase", () => {
   });
 
   it("should throw BadRequestError for invalid transition CANCELLED -> anything", async () => {
-    await shipmentDatabase.save(
+    prisma.shipment.findUnique.mockResolvedValue(
       makeShipment({ status: ShipmentStatus.CANCELLED }),
     );
 

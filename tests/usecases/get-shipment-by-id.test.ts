@@ -1,9 +1,8 @@
 import { describe, it, expect, beforeEach } from "vitest";
+import { mockDeep, type DeepMockProxy } from "vitest-mock-extended";
+import { PrismaClient, ShipmentStatus, type Shipment } from "@prisma/client";
 import { GetShipmentByIdUseCase } from "@/usecases/get-shipment-by-id";
-import { InMemoryShipmentDatabase } from "@/database/database";
-import { Shipment, ShipmentStatus } from "@/interfaces/shipment";
 import { NotFoundError } from "@/errors";
-import { ShipmentDatabaseRepository } from "@/database/interface";
 
 const mockShipment: Shipment = {
   id: "abc-123",
@@ -13,19 +12,20 @@ const mockShipment: Shipment = {
   distanceKm: 400,
   estimatedDeliveryHours: 5,
   createdAt: new Date(),
+  updatedAt: new Date(),
 };
 
 describe("GetShipmentByIdUseCase", () => {
-  let shipmentDatabase: ShipmentDatabaseRepository;
+  let prisma: DeepMockProxy<PrismaClient>;
   let useCase: GetShipmentByIdUseCase;
 
   beforeEach(() => {
-    shipmentDatabase = new InMemoryShipmentDatabase();
-    useCase = new GetShipmentByIdUseCase(shipmentDatabase);
+    prisma = mockDeep<PrismaClient>();
+    useCase = new GetShipmentByIdUseCase(prisma);
   });
 
   it("should return the shipment when found", async () => {
-    await shipmentDatabase.save(mockShipment);
+    prisma.shipment.findUnique.mockResolvedValue(mockShipment);
 
     const result = await useCase.execute("abc-123");
 
@@ -33,6 +33,8 @@ describe("GetShipmentByIdUseCase", () => {
   });
 
   it("should throw NotFoundError when shipment does not exist", async () => {
+    prisma.shipment.findUnique.mockResolvedValue(null);
+
     await expect(useCase.execute("nonexistent")).rejects.toThrow(NotFoundError);
     await expect(useCase.execute("nonexistent")).rejects.toThrow(
       "Shipment with id 'nonexistent' not found",

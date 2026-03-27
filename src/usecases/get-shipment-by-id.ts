@@ -1,9 +1,8 @@
-import { Shipment } from "@/interfaces/shipment";
-import { ShipmentDatabaseRepository } from "@/database/interface";
+import { PrismaClient, type Shipment } from "@prisma/client";
 import { NotFoundError } from "@/errors";
 
 export class GetShipmentByIdUseCase {
-  constructor(private readonly shipmentDatabase: ShipmentDatabaseRepository) {}
+  constructor(private readonly prisma: PrismaClient) {}
 
   /**
    * Retrieves a shipment by its id.
@@ -11,7 +10,7 @@ export class GetShipmentByIdUseCase {
    * @returns The shipment information if found
    */
   async execute(id: string): Promise<Shipment> {
-    const shipment = await this.shipmentDatabase.findById(id);
+    const shipment = await this.prisma.shipment.findUnique({ where: { id } });
 
     if (!shipment)
       throw new NotFoundError(`Shipment with id '${id}' not found`);

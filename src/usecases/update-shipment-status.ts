@@ -1,5 +1,4 @@
-import { Shipment, ShipmentStatus } from "@/interfaces/shipment";
-import { ShipmentDatabaseRepository } from "@/database/interface";
+import { PrismaClient, ShipmentStatus, type Shipment } from "@prisma/client";
 import { NotFoundError, BadRequestError } from "@/errors";
 
 const VALID_TRANSITIONS: Record<ShipmentStatus, ShipmentStatus[]> = {
@@ -23,10 +22,10 @@ const VALID_TRANSITIONS: Record<ShipmentStatus, ShipmentStatus[]> = {
  * @returns The updated shipment entity
  */
 export class UpdateShipmentStatusUseCase {
-  constructor(private readonly shipmentDatabase: ShipmentDatabaseRepository) {}
+  constructor(private readonly prisma: PrismaClient) {}
 
   async execute(id: string, status: ShipmentStatus): Promise<Shipment> {
-    const existing = await this.shipmentDatabase.findById(id);
+    const existing = await this.prisma.shipment.findUnique({ where: { id } });
 
     if (!existing)
       throw new NotFoundError(`Shipment with id '${id}' not found`);
@@ -38,13 +37,9 @@ export class UpdateShipmentStatusUseCase {
         `Invalid status transition from '${existing.status}' to '${status}'`,
       );
 
-    const updated = await this.shipmentDatabase.updateStatus(id, status);
-
-    if (!updated)
-      throw new NotFoundError(
-        `Shipment with id '${id}' was not found during update`,
-      );
-
-    return updated;
+    return this.prisma.shipment.update({
+      where: { id },
+      data: { status },
+    });
   }
 }

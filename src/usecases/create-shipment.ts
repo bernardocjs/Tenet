@@ -1,13 +1,12 @@
 import crypto from "node:crypto";
+import { PrismaClient, ShipmentStatus, type Shipment } from "@prisma/client";
 import { CreateShipmentDTO } from "@/dtos/shipment-dtos";
-import { Shipment, ShipmentStatus } from "@/interfaces/shipment";
-import { ShipmentDatabaseRepository } from "@/database/interface";
 import { MapRepository } from "@/providers/map/interface";
 import { config } from "@/config";
 
 export class CreateShipmentUseCase {
   constructor(
-    private readonly shipmentDatabase: ShipmentDatabaseRepository,
+    private readonly prisma: PrismaClient,
     private readonly mapService: MapRepository,
   ) {}
 
@@ -27,18 +26,15 @@ export class CreateShipmentUseCase {
       (distanceKm / config.averageSpeedKmh).toFixed(2),
     );
 
-    const shipment: Shipment = {
-      id: crypto.randomUUID(),
-      origin: data.origin,
-      destination: data.destination,
-      status: ShipmentStatus.PENDING,
-      distanceKm,
-      estimatedDeliveryHours,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    await this.shipmentDatabase.save(shipment);
-    return shipment;
+    return this.prisma.shipment.create({
+      data: {
+        id: crypto.randomUUID(),
+        origin: data.origin,
+        destination: data.destination,
+        status: ShipmentStatus.PENDING,
+        distanceKm,
+        estimatedDeliveryHours,
+      },
+    });
   }
 }
