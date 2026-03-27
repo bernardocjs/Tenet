@@ -7,6 +7,15 @@ Implement this feature: $ARGUMENTS
 
 ## Process
 
+**Step 0 — confirm before starting**
+Before writing any code, present a brief implementation plan:
+- What files will be created/modified (layer by layer)
+- Any schema or interface decisions that need input
+- Anything ambiguous in the requirements
+
+Ask: "Proceed with this plan?" — wait for confirmation before spawning any agent.
+If the feature involves a new Prisma model, call out that a migration will be needed separately after implementation.
+
 **Step 1 — implement**
 Spawn the `backend` subagent with this exact task:
 > Implement the following feature in the shipping API: $ARGUMENTS

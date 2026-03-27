@@ -7,20 +7,66 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum ShipmentStatus {
-  PENDING
-  IN_TRANSIT
-  DELIVERED
-  CANCELLED
+enum WebsiteStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
 }
 
-model Shipment {
-  id                     String         @id
-  origin                 String
-  destination            String
-  status                 ShipmentStatus @default(PENDING)
-  distanceKm             Float
-  estimatedDeliveryHours Float
-  createdAt              DateTime       @default(now())
-  updatedAt              DateTime       @updatedAt
+enum MediaType {
+  PHOTO
+  VIDEO
+}
+
+model User {
+  id           String          @id @default(uuid())
+  email        String          @unique
+  passwordHash String
+  name         String?
+  websites     CoupleWebsite[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  deletedAt    DateTime?
+
+  @@index([email])
+}
+
+model CoupleWebsite {
+  id              String        @id @default(uuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  slug            String        @unique
+  title           String
+  partnerName1    String
+  partnerName2    String
+  anniversaryDate DateTime?
+  message         String?       @db.Text
+  theme           String        @default("classic")
+  status          WebsiteStatus @default(DRAFT)
+  media           Media[]
+  publishedAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?
+
+  @@index([userId])
+  @@index([slug])
+}
+
+model Media {
+  id        String        @id @default(uuid())
+  websiteId String
+  website   CoupleWebsite @relation(fields: [websiteId], references: [id])
+  type      MediaType
+  url       String
+  key       String
+  fileName  String
+  sizeBytes Int
+  mimeType  String
+  sortOrder Int           @default(0)
+  caption   String?
+  createdAt DateTime      @default(now())
+  deletedAt DateTime?
+
+  @@index([websiteId])
 }

@@ -63,12 +63,6 @@ Feel free to create new AppError subclasses if needed, but always set an appropr
 4. Route in `src/routes/`
 5. Unit tests in `tests/usecases/`
 
-### 3. Pagination
-
-- Every `findMany` returning user-facing data must be paginated with standard `page` and `limit` query params
-- Use Prisma's `skip` and `take` for pagination, never `offset`/`limit` in raw SQL
-- Return pagination metadata in response: `{ data: [...], meta: { page, limit, total } }`
-
 ## Test pattern (copy this structure)
 
 ```typescript
@@ -112,3 +106,18 @@ Before returning ANY implementation:
 2. `npm test` — all tests must pass
 3. No `any` types without explicit justification
 4. Structured logging with Pino, never `console.log`
+
+## Docstrings
+
+- Every use case and provider method must have a docstring describing its behavior, inputs, outputs, and errors.
+- Use JSDoc format for docstrings, including `@param`, `@returns`.
+- Docstrings should be clear and concise, providing enough context for another developer to understand the method's purpose and how to use it without reading the implementation.
+- Example:
+
+```typescript
+/**
+ * Creates a new shipment with the given input data.
+ * @param input - The data to create a shipment
+ * @returns The created shipment object
+ */
+```
