@@ -33,7 +33,7 @@ export class RegisterUserUseCase {
     });
 
     const token = jwt.sign({ userId: user.id }, config.jwtSecret, {
-      expiresIn: config.jwtExpiresIn as unknown as number,
+      expiresIn: config.jwtExpiresIn,
     });
 
     return {

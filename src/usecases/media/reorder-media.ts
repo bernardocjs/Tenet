@@ -25,7 +25,7 @@ export class ReorderMediaUseCase {
     await this.db.$transaction(
       input.mediaIds.map((mediaId, index) =>
         this.db.media.update({
-          where: { id: mediaId },
+          where: { id: mediaId, websiteId },
           data: { sortOrder: index },
         }),
       ),

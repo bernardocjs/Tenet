@@ -1,8 +1,6 @@
 ---
 name: prod-check
-user-invocable: true
 description: Full production readiness audit. Runs lint, tests, build, then spawns SRE + DevOps agents in parallel to audit reliability and deployment posture.
-disable-model-invocation: true
 ---
 
 Run a full production readiness check on the shipping API.
@@ -10,15 +8,18 @@ Run a full production readiness check on the shipping API.
 ## Process
 
 **Step 1 — automated checks (run sequentially)**
+
 ```bash
 npm run lint
 npm run test:coverage
 npm run build
 ```
+
 Capture results. If lint or tests fail, stop and report — fix those before continuing.
 
 **Step 2 — read current state (brief, scoped)**
 Read only these files to give agents accurate context:
+
 - `src/server.ts` — startup and shutdown handling
 - `src/providers/map/osrm-map-provider.ts` — external service resilience
 - `src/routes/index.ts` — health endpoint
@@ -28,10 +29,12 @@ Read only these files to give agents accurate context:
 **Step 3 — spawn SRE + DevOps in parallel**
 
 Spawn `sre` subagent:
+
 > Audit this shipping API for production readiness from an SRE perspective.
 > Here are the relevant source files: [paste the files read above]
 >
 > Specifically check each item on this list and mark ✅ ⚠️ or ❌:
+>
 > - SIGTERM handler with Prisma disconnect
 > - Fetch timeouts on all external calls
 > - /health endpoint checks real dependencies
@@ -42,10 +45,12 @@ Spawn `sre` subagent:
 > For each ❌ or ⚠️, provide the exact code fix needed.
 
 Spawn `devops` subagent (same message, parallel):
+
 > Audit this shipping API for deployment readiness from a DevOps perspective.
 > Here are the relevant files: [paste docker-compose.yml and .env.example]
 >
 > Check and mark ✅ ⚠️ or ❌:
+>
 > - .env.example has all required vars with comments
 > - Docker Compose provisions PostgreSQL correctly
 > - Build compiles to dist/ without errors

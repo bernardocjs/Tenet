@@ -1,6 +1,5 @@
 ---
 name: add-endpoint
-user-invocable: true
 description: Add a new REST API endpoint following the project's layered pattern (DTO → Use Case → Controller → Route → Tests).
 ---
 

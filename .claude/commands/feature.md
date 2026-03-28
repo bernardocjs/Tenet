@@ -1,6 +1,5 @@
 ---
 name: feature
-user-invocable: true
 description: Implement a new feature end-to-end following clean architecture. Spawns a backend agent to implement, verifies with lint + tests, and SRE reviews reliability before handing off.
 ---
 
@@ -10,6 +9,7 @@ Implement this feature: $ARGUMENTS
 
 **Step 0 — confirm before starting**
 Before writing any code, present a brief implementation plan:
+
 - What files will be created/modified (layer by layer)
 - Any schema or interface decisions that need input
 - Anything ambiguous in the requirements
@@ -19,6 +19,7 @@ If the feature involves a new Prisma model, call out that a migration will be ne
 
 **Step 1 — implement**
 Spawn the `backend` subagent with this exact task:
+
 > Implement the following feature in the shipping API: $ARGUMENTS
 > Follow the project's clean architecture (Routes → Controllers → Use Cases → Providers).
 > Write unit tests for all new business logic following the Vitest + vitest-mock-extended pattern.
@@ -27,12 +28,14 @@ Spawn the `backend` subagent with this exact task:
 
 **Step 2 — verify**
 After the backend agent returns:
+
 - Run `npm run lint` in the main context to confirm
 - Run `npm test` to confirm all tests pass
 - If either fails, send the error output back to the backend agent via SendMessage and ask it to fix
 
 **Step 3 — reliability review**
 Spawn the `sre` subagent with:
+
 > Review the following newly implemented feature for production reliability: $ARGUMENTS
 > Focus only on: error handling completeness, logging sufficiency, external service resilience.
 > Read only the files the backend agent modified/created.
@@ -40,6 +43,7 @@ Spawn the `sre` subagent with:
 
 **Step 4 — report**
 Summarize to the user:
+
 - What was implemented (files changed)
 - Test coverage (which cases are covered)
 - SRE findings (if any critical ones, fix them now)

@@ -11,7 +11,7 @@ export const ConfirmUploadDto = z.object({
   key: z.string().min(1),
   fileName: z.string().min(1),
   sizeBytes: z.number().int().positive(),
-  mimeType: z.string().min(1),
+  mimeType: z.string().regex(/^(image|video)\/.+$/),
   caption: z.string().max(500).optional(),
 });
 

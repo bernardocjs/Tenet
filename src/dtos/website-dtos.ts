@@ -25,3 +25,9 @@ export type UpdateWebsiteInput = z.infer<typeof UpdateWebsiteDto>;
 export const WebsiteIdParam = z.object({
   id: z.string().uuid(),
 });
+
+export const PublicParamsDto = z.object({
+  slug: z.string().min(1),
+});
+
+export type PublicParamsInput = z.infer<typeof PublicParamsDto>;

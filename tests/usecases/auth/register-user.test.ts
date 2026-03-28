@@ -52,6 +52,33 @@ describe("RegisterUserUseCase", () => {
     });
   });
 
+  it("should create a user with null name when name is omitted", async () => {
+    prismaMock.user.findUnique.mockResolvedValue(null);
+    prismaMock.user.create.mockResolvedValue({
+      id: "user-2",
+      email: "noname@example.com",
+      passwordHash: "hashed-password",
+      name: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      deletedAt: null,
+    });
+
+    const result = await useCase.execute({
+      email: "noname@example.com",
+      password: "password123",
+    });
+
+    expect(result.user.name).toBeNull();
+    expect(prismaMock.user.create).toHaveBeenCalledWith({
+      data: {
+        email: "noname@example.com",
+        passwordHash: "hashed-password",
+        name: null,
+      },
+    });
+  });
+
   it("should throw BadRequestError when email already exists", async () => {
     prismaMock.user.findUnique.mockResolvedValue({
       id: "user-1",

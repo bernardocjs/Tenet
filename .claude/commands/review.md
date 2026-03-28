@@ -1,8 +1,6 @@
 ---
 name: review
-user-invocable: true
 description: Multi-perspective code review. Spawns backend (architecture/tests) and SRE (reliability/observability) agents in parallel against current git diff.
-disable-model-invocation: true
 ---
 
 Review the current changes (or: $ARGUMENTS if a specific file/PR is mentioned).
@@ -16,10 +14,12 @@ Keep only the diff output — do not read full files unless an agent asks.
 **Step 2 — spawn backend + SRE in parallel**
 
 Spawn `backend` subagent:
+
 > Review the following git diff for the shipping API from a backend/architecture perspective:
 > [paste diff]
 >
 > Check for:
+>
 > - Clean architecture violations (wrong layer dependencies, business logic in wrong place)
 > - Missing or weak test coverage for new code
 > - TypeScript type safety issues (any types, missing return types)
@@ -29,10 +29,12 @@ Spawn `backend` subagent:
 > Format: Critical | Recommended | Observations (one-liners with file:line references)
 
 Spawn `sre` subagent (in same message, parallel):
+
 > Review the following git diff for the shipping API from an SRE/reliability perspective:
 > [paste diff]
 >
 > Check for:
+>
 > - Logging: is new code observable? are external calls logged with context?
 > - Error resilience: external service failures handled? timeouts present?
 > - Any new env vars documented in .env.example?
@@ -42,6 +44,7 @@ Spawn `sre` subagent (in same message, parallel):
 
 **Step 3 — synthesize**
 Combine both agents' findings. Present as:
+
 ```
 ## Critical (must fix before merge)
 ...
@@ -52,4 +55,5 @@ Combine both agents' findings. Present as:
 ## Observations
 ...
 ```
+
 Ask user if they want fixes applied automatically.
