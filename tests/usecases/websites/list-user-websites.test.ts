@@ -29,28 +29,45 @@ describe("ListUserWebsitesUseCase", () => {
     useCase = new ListUserWebsitesUseCase(prismaMock);
   });
 
-  it("should return all websites for the user ordered by createdAt desc", async () => {
+  it("should return paginated websites for the user ordered by createdAt desc", async () => {
     const websites = [
       { ...websiteBase, id: "ws-2" },
       { ...websiteBase, id: "ws-1" },
     ];
     prismaMock.coupleWebsite.findMany.mockResolvedValue(websites);
+    prismaMock.coupleWebsite.count.mockResolvedValue(2);
 
-    const result = await useCase.execute("user-1");
+    const result = await useCase.execute("user-1", 1, 20);
 
-    expect(result).toHaveLength(2);
-    expect(result[0].id).toBe("ws-2");
+    expect(result.data).toHaveLength(2);
+    expect(result.data[0].id).toBe("ws-2");
+    expect(result.meta).toEqual({ page: 1, limit: 20, total: 2 });
     expect(prismaMock.coupleWebsite.findMany).toHaveBeenCalledWith({
       where: { userId: "user-1", deletedAt: null },
       orderBy: { createdAt: "desc" },
+      skip: 0,
+      take: 20,
     });
   });
 
-  it("should return an empty array when the user has no websites", async () => {
+  it("should return empty data when the user has no websites", async () => {
     prismaMock.coupleWebsite.findMany.mockResolvedValue([]);
+    prismaMock.coupleWebsite.count.mockResolvedValue(0);
 
-    const result = await useCase.execute("user-1");
+    const result = await useCase.execute("user-1", 1, 20);
 
-    expect(result).toEqual([]);
+    expect(result.data).toEqual([]);
+    expect(result.meta.total).toBe(0);
+  });
+
+  it("should calculate correct skip for page 2", async () => {
+    prismaMock.coupleWebsite.findMany.mockResolvedValue([]);
+    prismaMock.coupleWebsite.count.mockResolvedValue(25);
+
+    await useCase.execute("user-1", 2, 10);
+
+    expect(prismaMock.coupleWebsite.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ skip: 10, take: 10 }),
+    );
   });
 });

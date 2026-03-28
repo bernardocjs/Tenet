@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import jwt, { SignOptions } from "jsonwebtoken";
 import { config } from "@/config";
 import { BadRequestError } from "@/errors";
 import { RegisterInput } from "@/dtos/auth-dtos";
@@ -32,9 +32,10 @@ export class RegisterUserUseCase {
       },
     });
 
-    const token = jwt.sign({ userId: user.id }, config.jwtSecret, {
+    const signOptions: SignOptions = {
       expiresIn: config.jwtExpiresIn,
-    });
+    };
+    const token = jwt.sign({ userId: user.id }, config.jwtSecret, signOptions);
 
     return {
       user: { id: user.id, email: user.email, name: user.name },

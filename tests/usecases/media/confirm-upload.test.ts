@@ -44,6 +44,10 @@ describe("ConfirmUploadUseCase", () => {
     prismaMock = mockDeep<PrismaClient>();
     mockReset(prismaMock);
     useCase = new ConfirmUploadUseCase(prismaMock);
+    // Route $transaction callbacks through the same mock so findFirst/create mocks apply
+    prismaMock.$transaction.mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) =>
+      fn(prismaMock),
+    );
   });
 
   it("should create a media record with sortOrder 0 when no existing media", async () => {

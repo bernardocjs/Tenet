@@ -46,38 +46,44 @@ describe("ListMediaUseCase", () => {
     useCase = new ListMediaUseCase(prismaMock);
   });
 
-  it("should return media ordered by sortOrder ascending", async () => {
+  it("should return paginated media ordered by sortOrder ascending", async () => {
     prismaMock.coupleWebsite.findUnique.mockResolvedValue(website);
     prismaMock.media.findMany.mockResolvedValue([mediaBase]);
+    prismaMock.media.count.mockResolvedValue(1);
 
-    const result = await useCase.execute("ws-1", "user-1");
+    const result = await useCase.execute("ws-1", "user-1", 1, 50);
 
-    expect(result).toHaveLength(1);
-    expect(result[0].id).toBe("m-1");
+    expect(result.data).toHaveLength(1);
+    expect(result.data[0].id).toBe("m-1");
+    expect(result.meta).toEqual({ page: 1, limit: 50, total: 1 });
     expect(prismaMock.media.findMany).toHaveBeenCalledWith({
       where: { websiteId: "ws-1", deletedAt: null },
       orderBy: { sortOrder: "asc" },
+      skip: 0,
+      take: 50,
     });
   });
 
-  it("should return an empty array when website has no media", async () => {
+  it("should return empty data when website has no media", async () => {
     prismaMock.coupleWebsite.findUnique.mockResolvedValue(website);
     prismaMock.media.findMany.mockResolvedValue([]);
+    prismaMock.media.count.mockResolvedValue(0);
 
-    const result = await useCase.execute("ws-1", "user-1");
+    const result = await useCase.execute("ws-1", "user-1", 1, 50);
 
-    expect(result).toEqual([]);
+    expect(result.data).toEqual([]);
+    expect(result.meta.total).toBe(0);
   });
 
   it("should throw NotFoundError when website does not exist", async () => {
     prismaMock.coupleWebsite.findUnique.mockResolvedValue(null);
 
-    await expect(useCase.execute("ws-1", "user-1")).rejects.toThrow(NotFoundError);
+    await expect(useCase.execute("ws-1", "user-1", 1, 50)).rejects.toThrow(NotFoundError);
   });
 
   it("should throw ForbiddenError when user does not own the website", async () => {
     prismaMock.coupleWebsite.findUnique.mockResolvedValue(website);
 
-    await expect(useCase.execute("ws-1", "other-user")).rejects.toThrow(ForbiddenError);
+    await expect(useCase.execute("ws-1", "other-user", 1, 50)).rejects.toThrow(ForbiddenError);
   });
 });

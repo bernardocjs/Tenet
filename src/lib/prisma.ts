@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 // Models that support soft delete via the deletedAt field
 const SOFT_DELETE_MODELS = new Set(["CoupleWebsite", "Media", "User"]);
 
-const SOFT_DELETE_ACTIONS = new Set(["findMany", "findFirst", "findUnique"]);
+const SOFT_DELETE_ACTIONS = new Set(["findMany", "findFirst"]);
 
 function makePrismaClient(): PrismaClient {
   const client = new PrismaClient();

@@ -1,4 +1,4 @@
-import { PrismaClient, CoupleWebsite } from "@prisma/client";
+import { PrismaClient, CoupleWebsite, WebsiteStatus } from "@prisma/client";
 import { NotFoundError, ForbiddenError, BadRequestError } from "@/errors";
 
 export class PublishWebsiteUseCase {
@@ -17,12 +17,22 @@ export class PublishWebsiteUseCase {
       throw new ForbiddenError("You do not own this website");
     }
 
-    if (website.status === "PUBLISHED") {
+    if (website.status === WebsiteStatus.PUBLISHED) {
       throw new BadRequestError("Website is already published");
     }
 
-    if (website.status === "ARCHIVED") {
+    if (website.status === WebsiteStatus.ARCHIVED) {
       throw new BadRequestError("Cannot publish an archived website");
+    }
+
+    const mediaCount = await this.db.media.count({
+      where: { websiteId: id },
+    });
+
+    if (!website.message && mediaCount === 0) {
+      throw new BadRequestError(
+        "Website must have a message or at least one media item before publishing",
+      );
     }
 
     return this.db.coupleWebsite.update({

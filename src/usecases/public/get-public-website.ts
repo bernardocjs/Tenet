@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, WebsiteStatus } from "@prisma/client";
 import { NotFoundError } from "@/errors";
 
 interface PublicWebsite {
@@ -24,7 +24,7 @@ export class GetPublicWebsiteUseCase {
 
   async execute(slug: string): Promise<PublicWebsite> {
     const website = await this.db.coupleWebsite.findUnique({
-      where: { slug, deletedAt: null },
+      where: { slug, deletedAt: null, status: WebsiteStatus.PUBLISHED },
       include: {
         media: {
           where: { deletedAt: null },
@@ -40,7 +40,7 @@ export class GetPublicWebsiteUseCase {
       },
     });
 
-    if (!website || website.status !== "PUBLISHED") {
+    if (!website) {
       throw new NotFoundError("Website not found");
     }
 

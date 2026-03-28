@@ -31,3 +31,10 @@ export const PublicParamsDto = z.object({
 });
 
 export type PublicParamsInput = z.infer<typeof PublicParamsDto>;
+
+export const ListWebsitesQueryDto = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+});
+
+export type ListWebsitesQueryInput = z.infer<typeof ListWebsitesQueryDto>;

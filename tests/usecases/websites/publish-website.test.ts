@@ -31,8 +31,9 @@ describe("PublishWebsiteUseCase", () => {
     useCase = new PublishWebsiteUseCase(prismaMock);
   });
 
-  it("should publish a draft website", async () => {
+  it("should publish a draft website that has media", async () => {
     prismaMock.coupleWebsite.findUnique.mockResolvedValue(draftWebsite);
+    prismaMock.media.count.mockResolvedValue(1);
     prismaMock.coupleWebsite.update.mockResolvedValue({
       ...draftWebsite,
       status: "PUBLISHED",
@@ -42,6 +43,30 @@ describe("PublishWebsiteUseCase", () => {
     const result = await useCase.execute("ws-1", "user-1");
     expect(result.status).toBe("PUBLISHED");
     expect(result.publishedAt).toBeTruthy();
+  });
+
+  it("should publish a draft website that has a message but no media", async () => {
+    prismaMock.coupleWebsite.findUnique.mockResolvedValue({
+      ...draftWebsite,
+      message: "Our story",
+    });
+    prismaMock.media.count.mockResolvedValue(0);
+    prismaMock.coupleWebsite.update.mockResolvedValue({
+      ...draftWebsite,
+      message: "Our story",
+      status: "PUBLISHED",
+      publishedAt: new Date(),
+    });
+
+    const result = await useCase.execute("ws-1", "user-1");
+    expect(result.status).toBe("PUBLISHED");
+  });
+
+  it("should throw BadRequestError when website has no message and no media", async () => {
+    prismaMock.coupleWebsite.findUnique.mockResolvedValue(draftWebsite); // message: null
+    prismaMock.media.count.mockResolvedValue(0);
+
+    await expect(useCase.execute("ws-1", "user-1")).rejects.toThrow(BadRequestError);
   });
 
   it("should throw NotFoundError when website does not exist", async () => {

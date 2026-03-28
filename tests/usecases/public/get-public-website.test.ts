@@ -46,23 +46,8 @@ describe("GetPublicWebsiteUseCase", () => {
   });
 
   it("should throw NotFoundError when website is not published", async () => {
-    prismaMock.coupleWebsite.findUnique.mockResolvedValue({
-      id: "ws-1",
-      userId: "user-1",
-      slug: "test",
-      title: "T",
-      partnerName1: "A",
-      partnerName2: "B",
-      anniversaryDate: null,
-      message: null,
-      theme: "classic",
-      status: "DRAFT",
-      publishedAt: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      deletedAt: null,
-      media: [],
-    } as never);
+    // DB returns null when status filter (PUBLISHED) does not match the row
+    prismaMock.coupleWebsite.findUnique.mockResolvedValue(null);
 
     await expect(useCase.execute("test")).rejects.toThrow(NotFoundError);
   });

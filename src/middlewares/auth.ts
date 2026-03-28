@@ -1,7 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import { z } from "zod";
 import { config } from "@/config";
 import { UnauthorizedError } from "@/errors";
+
+const JwtPayloadSchema = z.object({
+  userId: z.string().min(1),
+});
 
 export function authMiddleware(
   req: Request,
@@ -15,10 +20,15 @@ export function authMiddleware(
 
   const token = header.slice(7);
   try {
-    const payload = jwt.verify(token, config.jwtSecret) as { userId: string };
-    req.userId = payload.userId;
+    const raw = jwt.verify(token, config.jwtSecret);
+    const result = JwtPayloadSchema.safeParse(raw);
+    if (!result.success) {
+      throw new UnauthorizedError("Invalid token payload");
+    }
+    req.userId = result.data.userId;
     next();
-  } catch {
+  } catch (err) {
+    if (err instanceof UnauthorizedError) throw err;
     throw new UnauthorizedError("Invalid or expired token");
   }
 }
