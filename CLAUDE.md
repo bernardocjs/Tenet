@@ -19,6 +19,7 @@ npm run test:ui      # Run tests with Vitest UI dashboard
 ```
 
 To run a single test file:
+
 ```bash
 npx vitest run tests/usecases/create-shipment.test.ts
 ```
@@ -32,7 +33,7 @@ Clean architecture with dependency injection: **Routes → Controllers → Use C
 - Error hierarchy: `AppError` → `NotFoundError` (404), `BadRequestError` (400), `ExternalServiceError` (503)
 - Zod schemas in `src/dtos/` validate before use cases; errors caught by global middleware
 
-Detailed rules: `.claude/rules/clean-architecture.md` | `.claude/rules/error-handling.md` | `.claude/rules/api-design.md`
+Detailed rules:
 
 ## Database
 
@@ -50,14 +51,14 @@ Detailed rules: `.claude/rules/testing.md`
 
 ## Skills (slash commands)
 
-- `/feature <description>` — implement feature end-to-end with tests + SRE review
-- `/add-endpoint <METHOD> <path> - <description>` — add REST endpoint following project patterns
-- `/review` — multi-agent code review (backend + SRE) against git diff
-- `/prod-check` — full production readiness audit (lint + tests + build + SRE + DevOps)
+- `/tdd` - Test-driven development with red-green-refactor loop. Use when user wants to build features or fix bugs using TDD, mentions "red-green-refactor", wants integration tests, or asks for test-first development.
+- `/write-a-prd` - Create a PRD through user interview, codebase exploration, and module design, then create a .md file. Use when user wants to write a PRD, create a product requirements document, or plan a new feature.
+- `/triage-issue` - Triage an issue by identifying the root cause, potential solutions, and next steps. Use when user wants to triage a bug or issue, mentions "triage", or asks for help debugging.
 
 ## Environment
 
 Copy `.env.example` to `.env`:
+
 ```
 PORT=3000
 OSRM_URL=          # Defaults to https://router.project-osrm.org/route/v1/driving
@@ -66,9 +67,3 @@ OSRM_URL=          # Defaults to https://router.project-osrm.org/route/v1/drivin
 ## Path Aliases
 
 `@/` maps to `src/`. Use `@/` imports throughout `src/`. The build uses `tsc-alias` to resolve these in the compiled output.
-
-## Key Domain Concepts
-
-- **Shipment** entity has statuses: `PENDING`, `IN_TRANSIT`, `DELIVERED`, `CANCELLED`
-- Distance is fetched from OSRM; estimated delivery = `distanceKm / speed` (speed configured via env, default 80 km/h)
-- City-to-coordinate mapping is hardcoded in `src/utils/map-helper.ts`
